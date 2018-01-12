@@ -29,6 +29,8 @@ import types, ConfigParser
 import sane
 import PIL.ImageDraw as ImageDraw
 import re, time, threading
+from mayan_api_client import API
+from wtforms.fields import StringField, SelectField
 
 # set global parmeters
 app_name = "sane-pygtk"
@@ -38,7 +40,7 @@ author_email = "<kzamir@walla.co.il>"
 home_page = "http://sane-pygtk.sourceforge.net"
 copyright = author_name + " " + author_email
 comments = "SANE (Scanner Access Now Easy)\npygtk frontend"
-
+api = API(host='http://192.168.22.188:81', username='Dave', password='dbvjdu123')
 # set gettext support
 locale_dir = '/usr/share/locale'
 try:
@@ -75,6 +77,8 @@ def show_warning_message(message):
 	dlg.destroy()
 
 DEGREE_NUMBERS=[0, 90, 180, 270]
+
+
 
 class MainWindow:
     def __init__(self):
@@ -297,7 +301,7 @@ class MainWindow:
         # close scanner
         scanner.close()
 
-    def _update_preview_image(self, scanned_image):
+    def _update_preview_image(self, uploaded_image):
         preview_image=self.preview_image
         if preview_image == None:
             show_warning_message('You should update the preview at first to see the scanning result within it.')
@@ -309,15 +313,15 @@ class MainWindow:
         x, y, w, h = self.drawn_rect
         px, py, pw, ph = int(x*sw), int(y*sh), int(w*sw), int(h*sh)
 
-        if preview_image.mode != scanned_image.mode:
-            preview_image = preview_image.convert(scanned_image.mode)
+        if preview_image.mode != uploaded_image.mode:
+            preview_image = preview_image.convert(uploaded_image.mode)
 
         im = preview_image
         draw = ImageDraw.Draw(preview_image)
         draw.line((px, py, px+pw, py+ph), fill=128)
         draw.line((px, py+ph, px+pw, py), fill=128)
 
-        draft = scanned_image.resize((pw, ph))
+        draft = uploaded_image.resize((pw, ph))
 
         preview_image.paste(draft, (px, py, px+pw, py+ph))
 
@@ -328,7 +332,7 @@ class MainWindow:
     def _show_preview_image(self):
         pil_image = self.preview_image
         if pil_image == None:
-            print "ERROR: Can't show the preview image as it has not been scanned yet"
+            print "ERROR: Can't show the preview image as it has not been uploaded yet"
             return
 
         w, h = pil_image.size
@@ -348,6 +352,38 @@ class MainWindow:
             self.preview_pixmap = self.pixmap.scale_simple(int(w * factor), int(h * factor), gtk.gdk.INTERP_NEAREST)
 
         self.drawingarea1.queue_draw()
+
+    def _upload_the_picture(self, obj):
+        dialog = gtk.FileChooserDialog("Open..",
+                                       None,
+                                       gtk.FILE_CHOOSER_ACTION_OPEN,
+                                       (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                        gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        dialog.set_default_response(gtk.RESPONSE_OK)
+
+        filter = gtk.FileFilter()
+        filter.set_name("All files")
+        filter.add_pattern("*")
+        dialog.add_filter(filter)
+
+        filter = gtk.FileFilter()
+        filter.set_name("Images")
+        filter.add_mime_type("image/png")
+        filter.add_mime_type("image/jpeg")
+        filter.add_mime_type("image/gif")
+        filter.add_pattern("*.png")
+        filter.add_pattern("*.jpg")
+        filter.add_pattern("*.gif")
+        filter.add_pattern("*.tif")
+        filter.add_pattern("*.xpm")
+        dialog.add_filter(filter)
+
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            print dialog.get_filename(), 'selected'
+        elif response == gtk.RESPONSE_CANCEL:
+            print 'Closed, no files selected'
+        dialog.destroy()
 
     def _scan_the_page(self, obj):
         # open scanner
@@ -439,6 +475,9 @@ class MainWindow:
         "button_scan_clicked_cb activated"
         return self._scan_the_page(obj)
 
+    def button_upload_clicked_cb(self, obj):
+        return self._upload_the_picture(obj)
+
     def button_scannext_clicked_cb(self, obj):
         "button_scan_clicked_cb activated"
         return self._scan_next_page(obj)
@@ -450,11 +489,20 @@ class MainWindow:
         self.entry_filename.set_text(efile_name)
         return self._scan_the_page(obj)
 
+
+    def button_upload_picture(self, obj):
+        chooser = gtk.FileChooserDialog(title=None, action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                                        buttons=(
+                                        gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+
+
+
+
     def keep_image_toggled_cb(self, obj):
         activated = obj.get_active()
         self.config.set('settings', 'keep_image', str(activated))
 
-    def show_scanned_toggled_cb(self, obj):
+    def show_uploaded_toggled_cb(self, obj):
         activated = obj.get_active()
         self.config.set('settings', 'show_scan', str(activated))
 
@@ -656,6 +704,8 @@ class MainWindow:
             self.imagemenuitem_zoom_in_activate_cb(None)
 
         return False
+
+
 
     def combobox_scanner_changed_cb(self, obj):
         "combobox_scanner_changed_cb activated"

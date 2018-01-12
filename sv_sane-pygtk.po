@@ -84,7 +84,7 @@ msgid "Settings"
 msgstr ""
 
 #: sane-pygtk.glade.h:12
-msgid "Update preview"
+msgid "Update picture"
 msgstr ""
 
 #: sane-pygtk.glade.h:13
