@@ -40,7 +40,7 @@ author_email = "<kzamir@walla.co.il>"
 home_page = "http://sane-pygtk.sourceforge.net"
 copyright = author_name + " " + author_email
 comments = "SANE (Scanner Access Now Easy)\npygtk frontend"
-api = API(host='http://192.168.22.188:81', username='Dave', password='dbvjdu123')
+api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
 # set gettext support
 locale_dir = '/usr/share/locale'
 try:
@@ -156,6 +156,9 @@ class MainWindow:
         self.spinbutton_brightness = xml.get_widget('spinbutton_brightness')
         self.spinbutton_resolution = xml.get_widget('spinbutton_resolution')
         self.combobox_mode = xml.get_widget('combobox_mode')
+        self.mycombobox = xml.get_widget('mycombobox')
+        self.window =xml.get_widget('window')
+        self.myliststore = xml.get_widget('myliststore')
         self.combobox_scanner = xml.get_widget('combobox_scanner')
         self.combobox_rotate = xml.get_widget('combobox_rotate')
         self.label_filename = xml.get_widget('label_filename')
@@ -705,6 +708,14 @@ class MainWindow:
 
         return False
 
+    def combobox_changed(self, widget, data=None):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active >= 0:
+            code = model[active][0]
+            print('The code of the selected color is {}'.format(code))
+        else:
+            print('No color selected')
 
 
     def combobox_scanner_changed_cb(self, obj):
@@ -782,6 +793,7 @@ class MainWindow:
                 print "WARNING: Can't open scanner"
         else:
             print "WARNING: Scanner number is out of range"
+
 
     def combobox_mode_changed_cb(self, obj):
         "combobox_mode_changed_cb activated"
