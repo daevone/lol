@@ -187,6 +187,7 @@ class text_box:
 
         #Submit data in window on click
         self.button.connect_object("clicked", self.submit, self.window)
+        
 
 
         #Make entry box
