@@ -8,9 +8,7 @@ pygtk.require('2.0')
 import gtk
 from mayan_api_client import API
 api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
-for result in api.metadata.metadata_types.get()['results']:
-    jmeno=result['name']
-    print(jmeno)
+
 
 
 
@@ -187,7 +185,7 @@ class text_box:
 
         #Submit data in window on click
         self.button.connect_object("clicked", self.submit, self.window)
-        
+
 
 
         #Make entry box
