@@ -43,7 +43,6 @@ class RadioButtons:
         for result in api.documents.document_types.get()['results']:
             button = gtk.RadioButton(buttons[position - 1] if position > 0 else None, result['label'])
             button.connect('toggled', self.callback, result['id'])
-            dokument = result['id']
             box2.pack_start(button, True, True, 0)
             button.show()
             buttons.append(button)
@@ -202,7 +201,7 @@ if __name__ == "__main__":
 
         window.add(button_open)
         window.show_all()
-
+    print dokument
 
     def on_file_selected(widget):
         filename = widget.get_filename()
