@@ -8,12 +8,8 @@ pygtk.require('2.0')
 import gtk
 from mayan_api_client import API
 api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
-for result in api.metadata.metadata_types.get()['results']:
-    jmeno=result['name']
-    print(jmeno)
 
-for result in api.documents.document_types.get()['results']:
-    print(result['label'])
+
 
 dialog = gtk.FileChooserDialog("Open..",
                                None,
@@ -72,21 +68,19 @@ class RadioButtons:
         box1.pack_start(box2, True, True, 0)
         box2.show()
 
-        button = gtk.RadioButton(None, "radio button1")
-        button.connect("toggled", self.callback, "radio button 1")
-        box2.pack_start(button, True, True, 0)
-        button.show()
 
-        button = gtk.RadioButton(button, "radio button2")
-        button.connect("toggled", self.callback, "radio button 2")
-        button.set_active(True)
-        box2.pack_start(button, True, True, 0)
-        button.show()
+        buttons = []
+        position = 0
+        for result in api.metadata.metadata_types.get()['results']:
+            button = gtk.RadioButton(buttons[position - 1] if position > 0 else None, result['name'])
+            button.connect('toggled', self.callback, result['name'])
+            box2.pack_start(button, True, True, 0)
+            button.show()
+            buttons.append(button)
+            position += 1
 
-        button = gtk.RadioButton(button, "radio button3")
-        button.connect("toggled", self.callback, "radio button 3")
-        box2.pack_start(button, True, True, 0)
-        button.show()
+
+
 
         separator = gtk.HSeparator()
         box1.pack_start(separator, False, True, 0)
@@ -97,7 +91,7 @@ class RadioButtons:
         box1.pack_start(box2, False, True, 0)
         box2.show()
 
-        button = gtk.Button("close")
+        button = gtk.Button("post")
         button.connect_object("clicked", self.close_application, self.window,
                               None)
         box2.pack_start(button, True, True, 0)
@@ -117,65 +111,119 @@ if __name__ == "__main__":
     main()
 
 
-class EntryExample:
-    def enter_callback(self, widget, entry):
-        entry_text = entry.get_text()
-        print "Entry contents: %s\n" % entry_text
 
-    def entry_toggle_editable(self, checkbutton, entry):
-        entry.set_editable(checkbutton.get_active())
+class text_box:
+    #Callback function, data arguments are ignored
+    def hello(self, widget, entry):
+        entry_text = self.entry.get_text()
+        print("Entry contents: ".format(entry_text))
 
-    def entry_toggle_visibility(self, checkbutton, entry):
-        entry.set_visibility(checkbutton.get_active())
+
+    def delete_event(self, widget, event, data=None):
+        #Return of FALSE deletes event, True keeps it
+        print("Delete even occurred")
+        return False
+
+    def submit(self, button):
+        try:
+            input = self.entry.get_text()
+            print(float(input))
+            return input
+        except ValueError:
+            print("This is not a number...")
+            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, "This is not a number")
+            self.md.set_position(gtk.WIN_POS_CENTER)
+            self.md.run()
+            self.md.destroy()
+
+
+    def enter(self, button):
+        try:
+            input = self.entry.get_text()
+            input = float(input)
+            print(input)
+            return input
+        except ValueError:
+            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, "This is not a number")
+            self.md.run()
+            self.md.destroy()
+            print("This is not a number...")
+
+
+
+    #Another Callback
+    def destroy(self, widget, data=None):
+        gtk.main_quit()
 
     def __init__(self):
-        # create a new window
-        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        window.set_size_request(200, 100)
-        window.set_title("GTK Entry")
-        window.connect("delete_event", lambda w, e: gtk.main_quit())
 
-        vbox = gtk.VBox(False, 0)
-        window.add(vbox)
+        self.fix = gtk.Fixed()
+
+        #create a new window
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_size_request(500, 500)
+        self.window.set_title("Powder Application")
+        self.window.set_position(gtk.WIN_POS_CENTER)
+        vbox = gtk.VBox(False,0)
+        self.window.add(vbox)
         vbox.show()
 
-        entry = gtk.Entry()
-        entry.set_max_length(50)
-        entry.connect("activate", self.enter_callback, entry)
-        entry.set_text("hello")
-        entry.insert_text(" world", len(entry.get_text()))
-        entry.select_region(0, len(entry.get_text()))
-        vbox.pack_start(entry, True, True, 0)
-        entry.show()
+        #When window is given delete_event, close
+        self.window.connect("delete_event", self.delete_event)
 
-        hbox = gtk.HBox(False, 0)
-        vbox.add(hbox)
-        hbox.show()
+        #Connect the "destroy" event to a signal handler
+        #Occurs with gtk_widget_destroy() or False in delete_event
+        self.window.connect("destroy", self.destroy)
 
-        check = gtk.CheckButton("Editable")
-        hbox.pack_start(check, True, True, 0)
-        check.connect("toggled", self.entry_toggle_editable, entry)
-        check.set_active(True)
-        check.show()
+        #Sets border width of window
+        self.window.set_border_width(10)
 
-        check = gtk.CheckButton("Visible")
-        hbox.pack_start(check, True, True, 0)
-        check.connect("toggled", self.entry_toggle_visibility, entry)
-        check.set_active(True)
-        check.show()
+        #Creates button
+        self.button = gtk.Button("Submit")
+        #self.button.connect("clicked", self.hello, None)
 
-        button = gtk.Button(stock=gtk.STOCK_CLOSE)
-        button.connect("clicked", lambda w: gtk.main_quit())
-        vbox.pack_start(button, True, True, 0)
-        button.set_flags(gtk.CAN_DEFAULT)
-        button.grab_default()
-        button.show()
-        window.show()
+        #Submit data in window on click
+        self.button.connect_object("clicked", self.submit, self.window)
 
 
-def main():
-    gtk.main()
-    return 0
+        #Make entry box
+        self.entry = gtk.Entry()
+        self.label = gtk.Label("Powder Density")
+        vbox.pack_start(self.label, False, False, 0)
+        self.label.show()
+        self.entry.set_max_length(20)
+        self.entry.select_region(0, len(self.entry.get_text()))
+        #self.entry.connect("activate", self.hello, self.entry)
+        self.entry.connect_object("activate", self.enter, self.window)
+        vbox.pack_start(self.entry, False, False, 0)
+        self.entry.show()
+
+        #This packs the button and entry into the window
+        #self.window.add(self.button)
+        #self.window.add(self.entry)
+
+        #hbox = gtk.HBox(False, 0)
+        #vbox.add(hbox)
+        #hbox.show()
+
+        #The final step is to display this newly created widget.
+        vbox.pack_start(self.button, False, False, 00)
+        self.button.show()
+
+        #And the window
+        self.window.show()
+
+    def main(self):
+        #All PyGTK apps must have a gtk.main().  Control ends here
+        #and waits for an event to occur
+        gtk.main()
+        return 0
+
+
+#If the program is run, create a gui instance and show it
+if __name__ == "__main__":
+    hello = text_box()
+    hello.main()
 
 
 if __name__ == "__main__":
