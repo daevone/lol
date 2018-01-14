@@ -8,6 +8,9 @@ pygtk.require('2.0')
 import gtk
 from mayan_api_client import API
 api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
+for result in api.metadata.metadata_types.get()['results']:
+    jmeno=result['name']
+    print(jmeno)
 
 
 
@@ -161,8 +164,8 @@ class text_box:
 
         #create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_size_request(500, 500)
-        self.window.set_title("Powder Application")
+        self.window.set_size_request(300, 300)
+        self.window.set_title("metadata")
         self.window.set_position(gtk.WIN_POS_CENTER)
         vbox = gtk.VBox(False,0)
         self.window.add(vbox)
@@ -187,16 +190,18 @@ class text_box:
 
 
         #Make entry box
-        self.entry = gtk.Entry()
-        self.label = gtk.Label("Powder Density")
-        vbox.pack_start(self.label, False, False, 0)
-        self.label.show()
-        self.entry.set_max_length(20)
-        self.entry.select_region(0, len(self.entry.get_text()))
+        for result in api.metadata.metadata_types.get()['results']:
+            lol=result['name']
+            self.entry = gtk.Entry()
+            self.label = gtk.Label(lol)
+            vbox.pack_start(self.label, False, False, 0)
+            self.label.show()
+            self.entry.set_max_length(20)
+            self.entry.select_region(0, len(self.entry.get_text()))
         #self.entry.connect("activate", self.hello, self.entry)
-        self.entry.connect_object("activate", self.enter, self.window)
-        vbox.pack_start(self.entry, False, False, 0)
-        self.entry.show()
+            self.entry.connect_object("activate", self.enter, self.window)
+            vbox.pack_start(self.entry, False, False, 0)
+            self.entry.show()
 
         #This packs the button and entry into the window
         #self.window.add(self.button)
