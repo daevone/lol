@@ -1,19 +1,19 @@
-#!/usr/bin/env python
-
-# example radiobuttons.py
 import pygtk
 
 pygtk.require('2.0')
 import gtk
 from mayan_api_client import API
-api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
-dokument=""
-metadata=""
 
+api = API(host='http://www.sspu-opava.cz:82', username='Dave', password='dbvjdu123')
+dokument = ""
+metadata = ""
+active_label_id = ""
 
 
 class RadioButtons:
     def callback(self, widget, data=None):
+        global active_label_id
+        active_label_id = data
         print "%s was toggled %s" % (data, ("OFF", "ON")[widget.get_active()])
 
     def close_application(self, widget, event, data=None):
@@ -37,20 +37,17 @@ class RadioButtons:
         box1.pack_start(box2, True, True, 0)
         box2.show()
 
-
         buttons = []
         position = 0
         for result in api.documents.document_types.get()['results']:
             button = gtk.RadioButton(buttons[position - 1] if position > 0 else None, result['label'])
             button.connect('toggled', self.callback, result['id'])
+            global labels
+            labels.append(result['id'])
             box2.pack_start(button, True, True, 0)
             button.show()
             buttons.append(button)
             position += 1
-
-
-
-
 
         separator = gtk.HSeparator()
         box1.pack_start(separator, False, True, 0)
@@ -70,6 +67,7 @@ class RadioButtons:
         button.show()
         self.window.show()
 
+
 def main():
     gtk.main()
     return 0
@@ -80,12 +78,10 @@ if __name__ == "__main__":
     main()
 
 
-
 class text_box:
     def hello(self, widget, entry):
         entry_text = self.entry.get_text()
         print("Entry contents: ".format(entry_text))
-
 
     def delete_event(self, widget, event, data=None):
         print("Delete even occurred")
@@ -98,11 +94,11 @@ class text_box:
             return input
         except ValueError:
             print("This is not a number...")
-            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, "This is not a number")
+            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                                        "This is not a number")
             self.md.set_position(gtk.WIN_POS_CENTER)
             self.md.run()
             self.md.destroy()
-
 
     def enter(self, button):
         try:
@@ -111,12 +107,11 @@ class text_box:
             print(input)
             return input
         except ValueError:
-            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, "This is not a number")
+            self.md = gtk.MessageDialog(None, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE,
+                                        "This is not a number")
             self.md.run()
             self.md.destroy()
             print("This is not a number...")
-
-
 
     def destroy(self, widget, data=None):
         gtk.main_quit()
@@ -125,22 +120,20 @@ class text_box:
 
         self.fix = gtk.Fixed()
 
-        #create a new window
+        # create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_size_request(300, 300)
         self.window.set_title("metadata")
         self.window.set_position(gtk.WIN_POS_CENTER)
-        vbox = gtk.VBox(False,0)
+        vbox = gtk.VBox(False, 0)
         self.window.add(vbox)
         vbox.show()
-
 
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
         self.window.set_border_width(10)
         self.button = gtk.Button("Submit")
         self.button.connect_object("clicked", self.submit, self.window)
-
 
         for result in api.metadata.metadata_types.get()['results']:
             self.entry = gtk.Entry()
@@ -153,8 +146,6 @@ class text_box:
             vbox.pack_start(self.entry, False, False, 0)
             self.entry.show()
 
-
-
         vbox.pack_start(self.button, False, False, 00)
         self.button.show()
 
@@ -164,12 +155,10 @@ class text_box:
         gtk.main()
         return 0
 
+
 if __name__ == "__main__":
     hello = text_box()
     hello.main()
-
-
-
 
 
     def main():
@@ -201,16 +190,19 @@ if __name__ == "__main__":
 
         window.add(button_open)
         window.show_all()
+
+
     print dokument
+
 
     def on_file_selected(widget):
         filename = widget.get_filename()
         print "File Choosen: ", filename
         with open(filename) as file_object:
-            response = api.documents.documents.post({'document_type': dokument}, files={'file': file_object})
+            global active_label_id
+            response = api.documents.documents.post({'document_type': active_label_id}, files={'file': file_object})
 
 
     if __name__ == "__main__":
         main()
     gtk.main()
-
